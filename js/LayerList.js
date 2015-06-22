@@ -84,6 +84,7 @@ define([
           // toggle layer visibility
           _self._toggleLayer(data, subData);
         }));
+        this._setMapEvents();
       },
 
       // start widget. called by user
@@ -739,7 +740,7 @@ define([
       },
 
       _updateAllMapLayers: function () {
-        if (this.map && (!this.layers || !this.layers.length)) {
+      //  if (this.map && (!this.layers || !this.layers.length)) {
           var layers = [];
           // get all non graphic layers
           array.forEach(this.map.layerIds, function (layerId) {
@@ -757,7 +758,7 @@ define([
             }
           }, this);
           this._set("layers", layers);
-        }
+      //  }
       },
 
       _init: function () {
@@ -796,7 +797,22 @@ define([
           }));
         }
       },
-
+      _setMapEvents: function() {
+        this.own(on(this.map, "layer-add", lang.hitch(this, function() {
+          this._updateAllMapLayers();
+          this.refresh().always(lang.hitch(this, function() {
+            this.set("loaded", true);
+            this.emit("load");
+          }));
+        })));
+        this.own(on(this.map, "layer-remove", lang.hitch(this, function() {
+          this._updateAllMapLayers();
+          this.refresh().always(lang.hitch(this, function() {
+            this.set("loaded", true);
+            this.emit("load");
+          }));
+        })));
+      },
       _setLayersAttr: function (newVal) {
         this._set("layers", newVal);
         if (this._created) {
